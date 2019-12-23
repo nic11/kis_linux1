@@ -267,7 +267,9 @@ int TFS_Driver_CreateChildInode(TFS_Driver* self, TFS_Inode* parent, TFS_Inode* 
 }
 
 int TFS_Driver_ReadFile(TFS_Driver* self, TFS_Inode* inode, void* buf) {
-    assert(inode->type == TFS_INODE_FILE);
+    if (inode->type != TFS_INODE_FILE) {
+        return TFS_ENOENT;
+    }
     int size = inode->file.file_size;
 
     if (buf == NULL) {
@@ -475,7 +477,7 @@ int TFS_Driver_CreateIdxByRawPath(TFS_Driver* self, const char* raw_path, enum T
 int TFS_Driver_ReadFileByRawPath(TFS_Driver* self, const char* path, void* buf) {
     TFS_Inode* inode = malloc(sizeof(TFS_Inode));
     int inode_idx = TFS_Driver_GetInodeByRawPath(self, path, inode);
-    int read = inode_idx != 0? TFS_Driver_ReadFile(self, inode, buf) : -1;
+    int read = inode_idx > 0? TFS_Driver_ReadFile(self, inode, buf) : inode_idx;
     free(inode);
     return read;
 }
@@ -483,7 +485,7 @@ int TFS_Driver_ReadFileByRawPath(TFS_Driver* self, const char* path, void* buf) 
 int TFS_Driver_WriteFileByRawPath(TFS_Driver* self, const char* path, const void* buf, int size) {
     TFS_Inode* inode = malloc(sizeof(TFS_Inode));
     int inode_idx = TFS_Driver_GetInodeByRawPath(self, path, inode);
-    int written = inode_idx != 0? TFS_Driver_WriteFile(self, inode, buf, size) : -1;
+    int written = inode_idx > 0? TFS_Driver_WriteFile(self, inode, buf, size) : inode_idx;
     free(inode);
     return written;
 }
